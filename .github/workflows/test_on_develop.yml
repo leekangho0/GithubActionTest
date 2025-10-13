@@ -16,14 +16,31 @@ jobs:
   # 이 workflow 는 "build" 라는 single job 으로 구성
   build:
     # job이 실행될 환경 - 최신 mac os
-    runs-on: macos-15
+    runs-on: macos-15.6
 
     # Step은 job의 일부로 실행될 일련의 task들을 나타냄
     steps:
+    # 1️⃣ 메인 프로젝트 (공개 레포) 체크아웃
+    - name: Checkout main repository
+      uses: actions/checkout@v4
+
+    # 2️⃣ 비공개 Secrets 레포 체크아웃
+    - name: Checkout secrets repository
+      uses: actions/checkout@v3
+      with:
+        repository: ESTiOSAI/Secrets   # 👈 Secrets repo 이름 변경
+        path: SecretsRepo              # 레포 복사
+        token: ${{ secrets.ACTION_TOKEN }} # 👈 Deploy key 또는 Personal Access Token
+
+    # 3️⃣ Secrets 파일 복사
+    - name: Copy Secrets files
+      run: |
+        cp SecretsRepo/XCConfig/Secrets.xcconfig ./iCo/AIProject/App/Resource/
+        cp SecretsRepo/GoogleServices/GoogleService-Info.plist ./iCo/AIProject/App/Resource/
+    
     # uses 키워드를 통해 Github Actions에서 기본으로 제공하는 액션을 사용 가능. 아래 액션은 repository 에 체크아웃하는 것
-    - uses: actions/checkout@v4
     # shell 이용해서 하나의 command 수행
     - name: Start xcode build 🛠
       run: |
-        xcodebuild clean test -project GithubActionTest.xcodeproj -scheme GithubActionTest -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.5'
+        xcodebuild clean test -project GithubActionTest.xcodeproj -scheme GithubActionTest -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.6'
 
